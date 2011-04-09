@@ -1,0 +1,4 @@
+
+# fireproof.py
+
+Fireproof is a static website generator.
