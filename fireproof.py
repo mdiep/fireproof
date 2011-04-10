@@ -147,8 +147,9 @@ class Site(object):
                 fullpath = os.path.join(output_dir, page.url[1:])
                 stream   = file(fullpath, 'w')
                 context  = {
-                    type:   page,
                     'site': self,
+                    'page': page,
+                    type:   page,
                 }
                 for line in template.stream(**context):
                     if ext == '.html':
