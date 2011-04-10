@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from operator import attrgetter
 import optparse
 import os
 import shutil
@@ -158,11 +159,26 @@ class Site(object):
                         line = line.encode('ascii', 'named_entities')
                     stream.write(line)
 
-def find_pages(site):
-    result = []
-    for type in site.pages:
-        for p in site.pages[type]:
-            result.append(p)
+def find_pages(site, type=None, limit=None, order_by=[]):
+    if type:
+        result = site.pages[type]
+    else:
+        result = []
+        for type in site.pages:
+            for p in site.pages[type]:
+                result.append(p)
+    
+    # enforce limit
+    if limit:
+        result = result[:limit]
+    
+    for key in reversed(order_by):
+        reverse = False
+        if key[0] == '-':
+            key = key[1:]
+            reverse = True
+        result = sorted(result, key=attrgetter(key), reverse=reverse)
+    
     return result
 
 def main():
