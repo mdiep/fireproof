@@ -126,7 +126,8 @@ class Site(object):
             os.mkdir(output_dir)
         for dir in self.subdirectories:
             path = os.path.join(output_dir, dir)
-            os.mkdir(path)
+            if not os.path.isdir(path):
+                os.mkdir(path)
         
         # 2) copy over all static files
         for path in self.static_files:
@@ -158,6 +159,8 @@ class Site(object):
 
 def main():
     parser = optparse.OptionParser(usage="%prog [options] site_dir output_dir", version="%prog " + VERSION)
+    parser.add_option("-f", "--force", dest="force", action="store_true", default=False,
+                      help="force output to a non-empty directory")
     
     (options, args) = parser.parse_args()
     
@@ -174,7 +177,7 @@ def main():
         parser.error("site directory '%s' isn't a directory" % site_dir)
     if os.path.exists(output_dir) and not os.path.isdir(output_dir):
         parser.error("output directory '%s' isn't a directory" % output_dir)
-    if os.path.isdir(output_dir) and len(os.listdir(output_dir)) != 0:
+    if not options.force and os.path.isdir(output_dir) and len(os.listdir(output_dir)) != 0:
         parser.error("output directory '%s' must be empty" % output_dir)
     
     site = Site(site_dir)
