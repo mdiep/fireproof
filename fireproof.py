@@ -10,6 +10,23 @@ import yaml
 
 VERSION = '0.0.0'
 
+import codecs
+from htmlentitydefs import codepoint2name
+
+# register a codec to handle escaping non-ASCII characters
+def named_entities(text):
+    if isinstance(text, (UnicodeEncodeError, UnicodeTranslateError)):
+        s = []
+        for c in text.object[text.start:text.end]:
+            if ord(c) in codepoint2name:
+                s.append(u'&%s;' % codepoint2name[ord(c)])
+            else:
+                s.append(u'&#%s;' % ord(c))
+        return ''.join(s), text.end
+    else:
+        raise TypeError("Can't handle %s" % text.__name__)
+codecs.register_error('named_entities', named_entities)
+
 class Page(object):
     def __init__(self, site, path):
         self.site = site
@@ -26,7 +43,7 @@ class Page(object):
             
             for key, value in yaml.load(data).items():
                 setattr(self, key, value)
-                
+            
             self.text = markdown2.markdown(text)
     
     def __str__(self):
@@ -123,6 +140,7 @@ class Site(object):
         env    = jinja2.Environment(loader=loader)
     
         for type in self.pages:
+            ext = self.page_exts[type]
             for page in self.pages[type]:
                 template = type + self.page_exts[page.type]
                 template = env.get_template(template)
@@ -133,6 +151,8 @@ class Site(object):
                     'site': self,
                 }
                 for line in template.stream(**context):
+                    if ext == '.html':
+                        line = line.encode('ascii', 'named_entities')
                     stream.write(line)
 
 def main():
