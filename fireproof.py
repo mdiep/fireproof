@@ -33,8 +33,8 @@ class Page(object):
         self.path = path
         
         root, ext = os.path.splitext(self.path)
-        self.url  = os.path.normpath(os.path.join('/', root + '.html'))
         self.type = ext[1:]
+        self.url  = os.path.normpath(os.path.join('/', root + site.page_exts[self.type]))
         
         contents = file(os.path.join(self.site.directory, self.path)).read()
         
