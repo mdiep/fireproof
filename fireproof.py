@@ -139,6 +139,7 @@ class Site(object):
         # template environment
         loader = jinja2.FileSystemLoader(self.template_dir)
         env    = jinja2.Environment(loader=loader)
+        env.globals['pages'] = find_pages
     
         for type in self.pages:
             ext = self.page_exts[type]
@@ -156,6 +157,13 @@ class Site(object):
                     if ext == '.html':
                         line = line.encode('ascii', 'named_entities')
                     stream.write(line)
+
+def find_pages(site):
+    result = []
+    for type in site.pages:
+        for p in site.pages[type]:
+            result.append(p)
+    return result
 
 def main():
     parser = optparse.OptionParser(usage="%prog [options] site_dir output_dir", version="%prog " + VERSION)
