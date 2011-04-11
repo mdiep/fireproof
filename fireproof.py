@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import codecs
+from datetime import datetime, time
 from operator import attrgetter
 import optparse
 import os
@@ -7,11 +9,11 @@ import shutil
 
 import jinja2
 import markdown2
+import pyrfc3339
 import yaml
 
 VERSION = '0.0.0'
 
-import codecs
 from htmlentitydefs import codepoint2name
 
 # register a codec to handle escaping non-ASCII characters
@@ -49,9 +51,43 @@ class Page(object):
     
     def __str__(self):
         return self.text
+    
+    @property
+    def absolute_url(self):
+        if self.site.url[-1] == '/':
+            return self.site.url + self.url[1:]
+        else:
+            return self.site.url + self.url
+    
+    @property
+    def tag(self):
+        url = self.absolute_url
+        
+        # discard everything before the domain name
+        idx = url.index('://') + 3
+        tag = url[idx:]
+        
+        # change all #s to /s
+        tag.replace('#', '/')
+        
+        # insert ,year-mm-dd:
+        idx  = url.index('/')
+        date = self.date.strftime('%Y-%m-%d')
+        tag  = tag[:idx] + ',' + date + ':' + tag[idx:]
+        
+        # add tag: at the beginning
+        tag = 'tag:' + tag
+        
+        return tag
 
 class Site(object):
     def __init__(self, dir):
+        initpath = os.path.join(dir, '.fireproof')
+        if os.path.isfile(initpath):
+            data = file(initpath).read()
+            for key, value in yaml.load(data).items():
+                setattr(self, key, value)
+        
         self.directory      = dir
         self.subdirectories = []
         self.files          = []
@@ -75,6 +111,8 @@ class Site(object):
     
     def should_ignore_file(self, path):
         if os.path.split(path)[1] == '.DS_Store':
+            return True
+        if path == '.fireproof':
             return True
         return False
     
@@ -140,7 +178,8 @@ class Site(object):
         # template environment
         loader = jinja2.FileSystemLoader(self.template_dir)
         env    = jinja2.Environment(loader=loader)
-        env.globals['pages'] = find_pages
+        env.filters['rfc3339'] = lambda x: pyrfc3339.generate(x, accept_naive=True)
+        env.globals['pages']   = find_pages
     
         for type in self.pages:
             ext = self.page_exts[type]
@@ -148,11 +187,12 @@ class Site(object):
                 template = type + self.page_exts[page.type]
                 template = env.get_template(template)
                 fullpath = os.path.join(output_dir, page.url[1:])
-                stream   = file(fullpath, 'w')
+                stream   = codecs.open(fullpath, 'w', encoding='UTF-8')
                 context  = {
                     'site': self,
                     'page': page,
                     type:   page,
+                    'now':  datetime.now(),
                 }
                 for line in template.stream(**context):
                     if ext == '.html':
