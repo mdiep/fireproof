@@ -37,7 +37,10 @@ class Page(object):
         
         root, ext = os.path.splitext(self.path)
         self.type = ext[1:]
-        self.url  = os.path.normpath(os.path.join('/', root + site.page_exts[self.type]))
+        self.file = root + site.page_exts[self.type]
+        self.url  = os.path.normpath(os.path.join('/', self.file))
+        if self.url.endswith('index.html'):
+            self.url = self.url[:-10]
         
         contents = file(os.path.join(self.site.directory, self.path)).read()
         
@@ -196,7 +199,7 @@ class Site(object):
             for page in self.pages[type]:
                 template = type + self.page_exts[page.type]
                 template = env.get_template(template)
-                fullpath = os.path.join(output_dir, page.url[1:])
+                fullpath = os.path.join(output_dir, page.file)
                 stream   = codecs.open(fullpath, 'w', encoding='UTF-8')
                 context  = {
                     'site': self,
