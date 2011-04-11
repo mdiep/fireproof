@@ -41,8 +41,9 @@ class Page(object):
         
         contents = file(os.path.join(self.site.directory, self.path)).read()
         
-        if contents.find('\n\n') != -1:
-            data, text = contents.split('\n\n', 2)
+        idx = contents.find('\n\n')
+        if idx != -1:
+            data, text = contents[:idx], contents[idx:]
             
             for key, value in yaml.load(data).items():
                 setattr(self, key, value)
