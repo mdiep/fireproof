@@ -48,6 +48,11 @@ class Page(object):
                 setattr(self, key, value)
             
             self.text = markdown2.markdown(text)
+        else:
+            data = yaml.load(contents)
+            if data:
+                for key, value in data.items():
+                    setattr(self, key, value)
     
     def __str__(self):
         return self.text
@@ -58,6 +63,10 @@ class Page(object):
             return self.site.url + self.url[1:]
         else:
             return self.site.url + self.url
+    
+    @property
+    def directory(self):
+        return os.path.split(self.url)[0]
     
     @property
     def tag(self):
