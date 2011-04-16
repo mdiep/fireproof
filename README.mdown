@@ -212,3 +212,20 @@ for more information on how to use it.
 [strftime documentation]: http://docs.python.org/library/datetime.html#strftime-and-strptime-behavior
 
     {{ page.date | strftime("%B %d") }}
+
+## TODO
+
+#### Add more ways to ignore files, using a Site property and .gitnore
+#### Add a notion of drafts
+#### Add a template function to retrieve other types of files, like images
+#### Add examples
+#### Add a convention for includable templates for stringification of pages.
+  
+The plan here is to add `_page-type.ext` files that are rendered when
+stringifying the page inside a template (`{{ page }}`). This will reduce
+duplication of template code between individual pages and list pages.
+
+#### Make the template directory configurable
+#### Support for sites that don't exist at the domain root
+#### Pagination
+#### A way to add tags
