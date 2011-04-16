@@ -213,14 +213,13 @@ class Site(object):
                         line = line.encode('ascii', 'named_entities')
                     stream.write(line)
 
-def find_pages(site, type=None, directory=None, limit=None, order_by=[]):
-    if type:
-        result = site.pages[type]
-    else:
-        result = []
-        for type in site.pages:
-            for p in site.pages[type]:
-                result.append(p)
+def find_pages(site, types=[], directory=None, limit=None, order_by=[]):
+    if not types:
+        types = site.pages.keys()
+    result = []
+    for type in types:
+        for p in site.pages[type]:
+            result.append(p)
     
     if directory:
         result = [p for p in result if p.directory.startswith(directory)]
