@@ -191,8 +191,9 @@ class Site(object):
         # template environment
         loader = jinja2.FileSystemLoader(self.template_dir)
         env    = jinja2.Environment(loader=loader)
-        env.filters['rfc3339'] = lambda x: pyrfc3339.generate(x, accept_naive=True)
-        env.globals['pages']   = find_pages
+        env.filters['rfc3339']  = lambda x: pyrfc3339.generate(x, accept_naive=True)
+        env.filters['strftime'] = datetime.strftime
+        env.globals['pages']    = find_pages
     
         for type in self.pages:
             ext = self.page_exts[type]
