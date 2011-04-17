@@ -12,7 +12,7 @@ import markdown2
 import pyrfc3339
 import yaml
 
-VERSION = '0.0.0'
+VERSION = '0.1.0'
 
 from htmlentitydefs import codepoint2name
 
