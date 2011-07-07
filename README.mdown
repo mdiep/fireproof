@@ -64,6 +64,33 @@ In your template, you want to list out the 10 most recent entries:
 Pretty simple! It's not too much harder move your entries into subdirectories
 based on year and month and provide archives of all your entries.
 
+If you want to add more complicated markup for the entries—and share it between
+the individual pages and main index—you can move the logic into a _partial_
+template.
+
+Create `templates/_entry.html`:
+
+    <h1>{{ entry.title }}</h1>
+    {{ entry.text }}
+
+Now `{{ entry }}` will return the value of this partial template in the other
+templates.
+
+If you create a partial for a page type but don't create a normal template, you
+can create a default template and use the value of a partial. Since all pages
+are pages, this default template should be called `page.ext`.
+
+So create `templates/page.html`:
+
+    <html>
+      <head>
+        <title>{{ page.title }} ({{ page.date|strftime("%B %d) }})</title>
+      </head>
+      <body>{{ page }}</body>
+    </html>
+
+Now `templates/entry.html` can be deleted.
+
 ## The Site
 
 The site object contains only one real standard property. Any other properties
@@ -219,12 +246,6 @@ for more information on how to use it.
 #### Add a notion of drafts
 #### Add a template function to retrieve other types of files, like images
 #### Add examples
-#### Add a convention for includable templates for stringification of pages.
-  
-The plan here is to add `_page-type.ext` files that are rendered when
-stringifying the page inside a template (`{{ page }}`). This will reduce
-duplication of template code between individual pages and list pages.
-
 #### Make the template directory configurable
 #### Support for sites that don't exist at the domain root
 #### Pagination

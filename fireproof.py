@@ -59,7 +59,12 @@ class Page(object):
                     setattr(self, key, value)
     
     def __str__(self):
-        return self.text
+        try:
+            template = '_' + self.type + self.site.page_exts[self.site.current_page.type]
+            template = self.site.template_env.get_template(template)
+            return self.site.render(self, template)
+        except jinja2.TemplateNotFound:
+            return self.text
     
     @property
     def absolute_url(self):
@@ -113,7 +118,15 @@ class Site(object):
         # 1) find templates and infer page types
         self.find_templates()
         
-        # 2) make a list of all directories and files: pages, images
+        # 2) set up template environment
+        loader = jinja2.FileSystemLoader(self.template_dir)
+        env    = jinja2.Environment(loader=loader)
+        env.filters['rfc3339']  = lambda x: pyrfc3339.generate(x, accept_naive=True)
+        env.filters['strftime'] = datetime.strftime
+        env.globals['pages']    = find_pages
+        self.template_env = env
+        
+        # 3) make a list of all directories and files: pages, images
         for dirpath, dirs, files in os.walk(self.directory):
             self.add_dirs_and_files(dirpath, dirs, files)
     
@@ -169,6 +182,9 @@ class Site(object):
                 continue;
             
             name, ext = os.path.splitext(file)
+            if name[0] == '_':
+                name = name[1:]
+            
             self.page_exts[name] = ext
             self.pages[name] = []
     
@@ -188,30 +204,32 @@ class Site(object):
             shutil.copyfile(src_path, dest_path)
         
         # 3) process all pages
-        # template environment
-        loader = jinja2.FileSystemLoader(self.template_dir)
-        env    = jinja2.Environment(loader=loader)
-        env.filters['rfc3339']  = lambda x: pyrfc3339.generate(x, accept_naive=True)
-        env.filters['strftime'] = datetime.strftime
-        env.globals['pages']    = find_pages
-    
         for type in self.pages:
             ext = self.page_exts[type]
             for page in self.pages[type]:
-                template = type + self.page_exts[page.type]
-                template = env.get_template(template)
+                self.current_page = page
+                try:
+                    template = type + self.page_exts[type]
+                    template = self.template_env.get_template(template)
+                except jinja2.TemplateNotFound:
+                    template = 'page' + self.page_exts['page']
+                    template = self.template_env.get_template(template)
                 fullpath = os.path.join(output_dir, page.file)
                 stream   = codecs.open(fullpath, 'w', encoding='UTF-8')
-                context  = {
-                    'site': self,
-                    'page': page,
-                    type:   page,
-                    'now':  datetime.now(),
-                }
-                for line in template.stream(**context):
+                for line in self.render(page, template):
                     if ext == '.html':
                         line = line.encode('ascii', 'named_entities')
                     stream.write(line)
+                self.current_page = None
+      
+    def render(self, page, template):
+        context  = {
+            'site':    self,
+            'page':    page,
+            page.type: page,
+            'now':     datetime.now(),
+        }
+        return template.render(**context)
 
 def find_pages(site, types=[], directory=None, limit=None, order_by=[]):
     if not types:
