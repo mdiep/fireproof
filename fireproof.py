@@ -9,12 +9,11 @@ import shutil
 
 import jinja2
 import markdown2
-import pyrfc3339
 import yaml
 
 VERSION = '0.1.0'
 
-from htmlentitydefs import codepoint2name
+from html.entities import codepoint2name
 
 # register a codec to handle escaping non-ASCII characters
 def named_entities(text):
@@ -42,8 +41,8 @@ class Page(object):
         if self.url.endswith('index.html'):
             self.url = self.url[:-10]
         
-        contents = file(os.path.join(self.site.directory, self.path)).read()
         
+        contents = open(os.path.join(self.site.directory, self.path)).read()
         idx = contents.find('\n\n')
         if idx != -1:
             data, text = contents[:idx], contents[idx:]
@@ -102,7 +101,7 @@ class Site(object):
     def __init__(self, dir):
         initpath = os.path.join(dir, '.fireproof')
         if os.path.isfile(initpath):
-            data = file(initpath).read()
+            data = open(initpath).read()
             for key, value in yaml.load(data).items():
                 setattr(self, key, value)
         
@@ -121,7 +120,7 @@ class Site(object):
         # 2) set up template environment
         loader = jinja2.FileSystemLoader(self.template_dir)
         env    = jinja2.Environment(loader=loader)
-        env.filters['rfc3339']  = lambda x: pyrfc3339.generate(x, accept_naive=True)
+        env.filters['rfc3339']  = lambda x: x.strftime('%Y-%m-%dT%H:%M:%SZ')
         env.filters['strftime'] = datetime.strftime
         env.globals['pages']    = find_pages
         self.template_env = env
@@ -218,7 +217,7 @@ class Site(object):
                 stream   = codecs.open(fullpath, 'w', encoding='UTF-8')
                 for line in self.render(page, template):
                     if ext == '.html':
-                        line = line.encode('ascii', 'named_entities')
+                        line = line.encode('ascii', 'named_entities').decode('UTF-8')
                     stream.write(line)
                 self.current_page = None
       
