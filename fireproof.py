@@ -50,7 +50,7 @@ class Page(object):
             for key, value in yaml.load(data).items():
                 setattr(self, key, value)
             
-            self.text = markdown2.markdown(text)
+            self.text = markdown2.markdown(text, extras=["fenced-code-blocks"])
         else:
             data = yaml.load(contents)
             if data:
