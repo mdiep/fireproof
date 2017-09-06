@@ -226,7 +226,7 @@ class Site(object):
             'site':    self,
             'page':    page,
             page.type: page,
-            'now':     datetime.now(),
+            'now':     datetime.utcnow(),
         }
         return template.render(**context)
 
