@@ -241,16 +241,16 @@ def find_pages(site, types=[], directory=None, limit=None, order_by=[]):
     if directory:
         result = [p for p in result if p.directory.startswith(directory)]
 
-    # enforce limit
-    if limit:
-        result = result[:limit]
-
     for key in reversed(order_by):
         reverse = False
         if key[0] == '-':
             key = key[1:]
             reverse = True
         result = sorted(result, key=attrgetter(key), reverse=reverse)
+
+    # enforce limit
+    if limit:
+        result = result[:limit]
 
     return result
 
