@@ -120,6 +120,7 @@ class Site(object):
         # 2) set up template environment
         loader = jinja2.FileSystemLoader(self.template_dir)
         env    = jinja2.Environment(loader=loader)
+        env.filters['markdown'] = lambda x: markdown2.markdown(x) if x else ""
         env.filters['rfc3339']  = lambda x: x.strftime('%Y-%m-%dT%H:%M:%SZ')
         env.filters['strftime'] = datetime.strftime
         env.globals['pages']    = find_pages
