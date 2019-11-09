@@ -138,14 +138,20 @@ class Site(object):
             self.add_dirs_and_files(dirpath, dirs, files)
 
     def should_ignore_dir(self, path):
+        name = os.path.split(path)[1]
         if path == self.template_dir:
+            return True
+        if name == '.git':
             return True
         return False
 
     def should_ignore_file(self, path):
+        name = os.path.split(path)[1]
         if os.path.split(path)[1] == '.DS_Store':
             return True
-        if path == '.fireproof':
+        if name == '.fireproof':
+            return True
+        if name.startswith(".git"):
             return True
         return False
 
