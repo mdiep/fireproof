@@ -29,13 +29,20 @@ def named_entities(text):
         raise TypeError("Can't handle %s" % text.__name__)
 codecs.register_error('named_entities', named_entities)
 
+def splittype(path):
+    name, ext = os.path.splitext(path)
+    if ext == ".md":
+        name, ext = os.path.splitext(name)
+    return (name, ext[1:])
+  
+
 class Page(object):
     def __init__(self, site, path):
         self.site = site
         self.path = path
 
-        root, ext = os.path.splitext(self.path)
-        self.type = ext[1:]
+        root, type = splittype(self.path)
+        self.type = type
         self.file = root + site.page_exts[self.type]
         self.url  = os.path.normpath(os.path.join('/', self.file))
         if self.url.endswith('index.html'):
@@ -165,14 +172,14 @@ class Site(object):
 
         for name in files:
             path = os.path.join(dirpath, name)
-            ext  = (os.path.splitext(path)[1])[1:]
+            type = splittype(path)[1]
             if self.should_ignore_file(path):
                 continue
 
             self.files.append(path)
-            if ext in self.pages:
+            if type in self.pages:
                 page = Page(self, path)
-                self.pages[ext].append(page)
+                self.pages[type].append(page)
             else:
                 self.static_files.append(path)
 
