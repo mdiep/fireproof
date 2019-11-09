@@ -54,12 +54,12 @@ class Page(object):
         if idx != -1:
             data, text = contents[:idx], contents[idx:]
 
-            for key, value in yaml.load(data).items():
+            for key, value in yaml.safe_load(data).items():
                 setattr(self, key, value)
 
             self.text = markdown2.markdown(text, extras=["fenced-code-blocks", "footnotes"])
         else:
-            data = yaml.load(contents)
+            data = yaml.safe_load(contents)
             if data:
                 for key, value in data.items():
                     setattr(self, key, value)
@@ -109,7 +109,7 @@ class Site(object):
         initpath = os.path.join(dir, '.fireproof')
         if os.path.isfile(initpath):
             data = open(initpath).read()
-            for key, value in yaml.load(data).items():
+            for key, value in yaml.safe_load(data).items():
                 setattr(self, key, value)
 
         self.directory      = dir
