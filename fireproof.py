@@ -141,17 +141,13 @@ class Site(object):
         name = os.path.split(path)[1]
         if path == self.template_dir:
             return True
-        if name == '.git':
+        if name.startswith("."):
             return True
         return False
 
     def should_ignore_file(self, path):
         name = os.path.split(path)[1]
-        if os.path.split(path)[1] == '.DS_Store':
-            return True
-        if name == '.fireproof':
-            return True
-        if name.startswith(".git"):
+        if name.startswith("."):
             return True
         return False
 
